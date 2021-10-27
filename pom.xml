@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>18</version>
+    <version>24</version>
   </parent>
 
   <groupId>io.streamnative.connectors</groupId>
@@ -220,6 +220,12 @@
         <artifactId>scala-maven-plugin</artifactId>
         <version>${scala-maven-plugin.version}</version>
         <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>doc-jar</goal>
+            </goals>
+          </execution>
           <execution>
             <id>eclipse-add-source</id>
             <goals>
