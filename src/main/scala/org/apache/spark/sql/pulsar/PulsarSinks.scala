@@ -86,7 +86,7 @@ private[pulsar] object PulsarSinks extends Logging {
               s"'$TopicAttributeName' attribute is present. Use the " +
               s"$TopicSingle option for setting a topic.")
         } else {
-          Literal(topic.get, StringType)
+          Literal(topic.get)
         }
       )
       .dataType match {
