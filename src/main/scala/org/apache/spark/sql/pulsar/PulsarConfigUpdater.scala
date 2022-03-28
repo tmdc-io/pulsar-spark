@@ -40,9 +40,9 @@ private[pulsar] case class PulsarConfigUpdater(
       logInfo(s"$module: Skip '$key'")
     } else {
       map.put(key, value)
-      logInfo(s"$module: Set '$key' to " +
-        s"'${printConfigValue(key, Option(value))}'," +
-        s" earlier value: '${printConfigValue(key, pulsarParams.get(key))}'")
+//      logInfo(s"$module: Set '$key' to " +
+//        s"'${printConfigValue(key, Option(value))}'," +
+//        s" earlier value: '${printConfigValue(key, pulsarParams.get(key))}'")
     }
     this
   }
@@ -57,8 +57,8 @@ private[pulsar] case class PulsarConfigUpdater(
     } else {
       if (!map.containsKey(key)) {
         map.put(key, value)
-        logInfo(s"$module: Set '$key' to " +
-          s"'${printConfigValue(key, pulsarParams.get(key))}'")
+//        logInfo(s"$module: Set '$key' to " +
+//          s"'${printConfigValue(key, pulsarParams.get(key))}'")
       }
     }
     this
