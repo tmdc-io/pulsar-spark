@@ -3,7 +3,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,31 +13,29 @@
  */
 package org.apache.spark.sql.pulsar
 
-import java.math.BigDecimal
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.sql.Timestamp
-import java.util.Date
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
-
 import org.apache.pulsar.client.api.Message
 import org.apache.pulsar.client.impl.schema.generic.GenericAvroRecord
 import org.apache.pulsar.common.schema.{SchemaInfo, SchemaType}
-import org.apache.pulsar.shade.org.apache.avro.{LogicalTypes, Schema, SchemaBuilder}
 import org.apache.pulsar.shade.org.apache.avro.Conversions.DecimalConversion
 import org.apache.pulsar.shade.org.apache.avro.LogicalTypes.{TimestampMicros, TimestampMillis}
 import org.apache.pulsar.shade.org.apache.avro.Schema.Type._
 import org.apache.pulsar.shade.org.apache.avro.generic.{GenericData, GenericFixed, GenericRecord}
 import org.apache.pulsar.shade.org.apache.avro.util.Utf8
-
+import org.apache.pulsar.shade.org.apache.avro.{LogicalTypes, Schema, SchemaBuilder}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.{SpecificInternalRow, UnsafeArrayData}
 import org.apache.spark.sql.catalyst.json.{CreateJacksonParser, JSONOptionsInRead}
 import org.apache.spark.sql.catalyst.util.{ArrayBasedMapData, ArrayData, DateTimeUtils, GenericArrayData, MapData}
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.UTF8String
+
+import java.math.BigDecimal
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.sql.Timestamp
+import java.util.Date
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 
 class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRead) {
 
@@ -60,13 +58,12 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
         val avroSchema =
           new Schema.Parser().parse(new String(schemaInfo.getSchema, StandardCharsets.UTF_8))
         val writer = getRecordWriter(avroSchema, st, Nil)
-        (msg: Message[_]) =>
-          {
-            val value = msg.getValue
-            writer(fieldUpdater, value.asInstanceOf[GenericAvroRecord].getAvroRecord)
-            writeMetadataFields(msg, resultRow)
-            resultRow
-          }
+        (msg: Message[_]) => {
+          val value = msg.getValue
+          writer(fieldUpdater, value.asInstanceOf[GenericAvroRecord].getAvroRecord)
+          writeMetadataFields(msg, resultRow)
+          resultRow
+        }
 
       case SchemaType.JSON =>
         val st = rootDataType.asInstanceOf[StructType]
@@ -78,25 +75,23 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
           (input, record) => rawParser.parse(input, createParser, UTF8String.fromString, record),
           parsedOptions.parseMode,
           st)
-        (msg: Message[_]) =>
-          {
-            val value = msg.getData
-            parser.parse(new String(value, java.nio.charset.StandardCharsets.UTF_8), resultRow)
-            writeMetadataFields(msg, resultRow)
-            resultRow
-          }
+        (msg: Message[_]) => {
+          val value = msg.getData
+          parser.parse(new String(value, java.nio.charset.StandardCharsets.UTF_8), resultRow)
+          writeMetadataFields(msg, resultRow)
+          resultRow
+        }
 
       case _ => // AtomicTypes
         val tmpRow = new SpecificInternalRow(Seq(rootDataType) ++ metaDataFields.map(_.dataType))
         val fieldUpdater = new RowUpdater(tmpRow)
         val writer = newAtomicWriter(rootDataType)
-        (msg: Message[_]) =>
-          {
-            val value = msg.getValue
-            writer(fieldUpdater, 0, value)
-            writeMetadataFields(msg, tmpRow)
-            tmpRow
-          }
+        (msg: Message[_]) => {
+          val value = msg.getValue
+          writer(fieldUpdater, 0, value)
+          writeMetadataFields(msg, tmpRow)
+          tmpRow
+        }
     }
   }
 
@@ -127,10 +122,10 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     // properties
     if (message.getProperties != null) {
       row.update(metaStartIdx + 5, createMapData(message.getProperties,
-                                                 SchemaBuilder.builder().stringType(),
-                                                 StringType,
-                                                 valueContainsNull = true,
-                                                 Nil))
+        SchemaBuilder.builder().stringType(),
+        StringType,
+        valueContainsNull = true,
+        Nil))
     } else {
       row.setNullAt(metaStartIdx + 5)
     }
@@ -198,9 +193,9 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     }
 
   private def newWriter(
-      avroType: Schema,
-      catalystType: DataType,
-      path: List[String]): (CatalystDataUpdater, Int, Any) => Unit =
+                         avroType: Schema,
+                         catalystType: DataType,
+                         path: List[String]): (CatalystDataUpdater, Int, Any) => Unit =
     (avroType.getType, catalystType) match {
       case (NULL, NullType) =>
         (updater, ordinal, _) =>
@@ -329,7 +324,7 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
       case (MAP, MapType(keyType, valueType, valueContainsNull)) if keyType == StringType =>
         (updater, ordinal, value) =>
           val mapData =
-              createMapData(value, avroType.getValueType, valueType, valueContainsNull, path)
+            createMapData(value, avroType.getValueType, valueType, valueContainsNull, path)
           updater.set(ordinal, mapData)
 
       case (UNION, _) =>
@@ -366,14 +361,13 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
                           newWriter(schema, field.dataType, path :+ field.name)
                       }
                       .toArray
-                    (updater, ordinal, value) =>
-                      {
-                        val row = new SpecificInternalRow(st)
-                        val fieldUpdater = new RowUpdater(row)
-                        val i = GenericData.get().resolveUnion(avroType, value)
-                        fieldWriters(i)(fieldUpdater, i, value)
-                        updater.set(ordinal, row)
-                      }
+                    (updater, ordinal, value) => {
+                      val row = new SpecificInternalRow(st)
+                      val fieldUpdater = new RowUpdater(row)
+                      val i = GenericData.get().resolveUnion(avroType, value)
+                      fieldWriters(i)(fieldUpdater, i, value)
+                      updater.set(ordinal, row)
+                    }
 
                   case _ =>
                     throw new IncompatibleSchemaException(
@@ -394,9 +388,9 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     }
 
   private def getRecordWriter(
-      avroType: Schema,
-      sqlType: StructType,
-      path: List[String]): (RowUpdater, GenericRecord) => Unit = {
+                               avroType: Schema,
+                               sqlType: StructType,
+                               path: List[String]): (RowUpdater, GenericRecord) => Unit = {
     val validFieldIndexes = ArrayBuffer.empty[Int]
     val fieldWriters = ArrayBuffer.empty[(RowUpdater, Any) => Unit]
 
@@ -421,8 +415,10 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
       } else if (!sqlField.nullable) {
         throw new IncompatibleSchemaException(
           s"""
-             |Cannot find non-nullable field ${path
-               .mkString(".")}.${sqlField.name} in Avro schema.
+             |Cannot find non-nullable field ${
+            path
+              .mkString(".")
+          }.${sqlField.name} in Avro schema.
              |Source Avro schema: $avroType.
              |Target Catalyst type: $sqlType.
            """.stripMargin)
@@ -430,14 +426,13 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
       i += 1
     }
 
-    (fieldUpdater, record) =>
-      {
-        var i = 0
-        while (i < validFieldIndexes.length) {
-          fieldWriters(i)(fieldUpdater, record.get(validFieldIndexes(i)))
-          i += 1
-        }
+    (fieldUpdater, record) => {
+      var i = 0
+      while (i < validFieldIndexes.length) {
+        fieldWriters(i)(fieldUpdater, record.get(validFieldIndexes(i)))
+        i += 1
       }
+    }
   }
 
   private def createDecimal(decimal: BigDecimal, precision: Int, scale: Int): Decimal = {
@@ -454,7 +449,7 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
                             valueSchema: Schema,
                             valueType: DataType,
                             valueContainsNull: Boolean,
-                            path: List[String]) : MapData = {
+                            path: List[String]): MapData = {
     val keyWriter = newWriter(SchemaBuilder.builder().stringType(), StringType, path)
     val valueWriter = newWriter(valueSchema, valueType, path)
     val map = value.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
@@ -504,13 +499,21 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     def set(ordinal: Int, value: Any): Unit
 
     def setNullAt(ordinal: Int): Unit = set(ordinal, null)
+
     def setBoolean(ordinal: Int, value: Boolean): Unit = set(ordinal, value)
+
     def setByte(ordinal: Int, value: Byte): Unit = set(ordinal, value)
+
     def setShort(ordinal: Int, value: Short): Unit = set(ordinal, value)
+
     def setInt(ordinal: Int, value: Int): Unit = set(ordinal, value)
+
     def setLong(ordinal: Int, value: Long): Unit = set(ordinal, value)
+
     def setDouble(ordinal: Int, value: Double): Unit = set(ordinal, value)
+
     def setFloat(ordinal: Int, value: Float): Unit = set(ordinal, value)
+
     def setDecimal(ordinal: Int, value: Decimal): Unit = set(ordinal, value)
   }
 
@@ -518,13 +521,21 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     override def set(ordinal: Int, value: Any): Unit = row.update(ordinal, value)
 
     override def setNullAt(ordinal: Int): Unit = row.setNullAt(ordinal)
+
     override def setBoolean(ordinal: Int, value: Boolean): Unit = row.setBoolean(ordinal, value)
+
     override def setByte(ordinal: Int, value: Byte): Unit = row.setByte(ordinal, value)
+
     override def setShort(ordinal: Int, value: Short): Unit = row.setShort(ordinal, value)
+
     override def setInt(ordinal: Int, value: Int): Unit = row.setInt(ordinal, value)
+
     override def setLong(ordinal: Int, value: Long): Unit = row.setLong(ordinal, value)
+
     override def setDouble(ordinal: Int, value: Double): Unit = row.setDouble(ordinal, value)
+
     override def setFloat(ordinal: Int, value: Float): Unit = row.setFloat(ordinal, value)
+
     override def setDecimal(ordinal: Int, value: Decimal): Unit =
       row.setDecimal(ordinal, value, value.precision)
   }
@@ -533,13 +544,21 @@ class PulsarDeserializer(schemaInfo: SchemaInfo, parsedOptions: JSONOptionsInRea
     override def set(ordinal: Int, value: Any): Unit = array.update(ordinal, value)
 
     override def setNullAt(ordinal: Int): Unit = array.setNullAt(ordinal)
+
     override def setBoolean(ordinal: Int, value: Boolean): Unit = array.setBoolean(ordinal, value)
+
     override def setByte(ordinal: Int, value: Byte): Unit = array.setByte(ordinal, value)
+
     override def setShort(ordinal: Int, value: Short): Unit = array.setShort(ordinal, value)
+
     override def setInt(ordinal: Int, value: Int): Unit = array.setInt(ordinal, value)
+
     override def setLong(ordinal: Int, value: Long): Unit = array.setLong(ordinal, value)
+
     override def setDouble(ordinal: Int, value: Double): Unit = array.setDouble(ordinal, value)
+
     override def setFloat(ordinal: Int, value: Float): Unit = array.setFloat(ordinal, value)
+
     override def setDecimal(ordinal: Int, value: Decimal): Unit = array.update(ordinal, value)
   }
 }

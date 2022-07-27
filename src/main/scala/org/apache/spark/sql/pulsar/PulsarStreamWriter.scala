@@ -17,7 +17,7 @@ import java.{util => ju}
 
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.Attribute
-import org.apache.spark.sql.connector.write.{DataWriter, DataWriterFactory, PhysicalWriteInfo, WriterCommitMessage}
+import org.apache.spark.sql.connector.write.{DataWriter, PhysicalWriteInfo, WriterCommitMessage}
 import org.apache.spark.sql.connector.write.streaming.{StreamingDataWriterFactory, StreamingWrite}
 import org.apache.spark.sql.types.StructType
 
@@ -28,7 +28,7 @@ import org.apache.spark.sql.types.StructType
 case object PulsarWriterCommitMessage extends WriterCommitMessage
 
 /**
- * A [[StreamWriter]] for Pulsar writing. Responsible for generating the writer factory.
+ * A [[PulsarStreamWriter]] for Pulsar writing. Responsible for generating the writer factory.
  *
  * @param schema The schema of the input data.
  * @param clientConf Parameters for Pulsar client in each task.
@@ -51,7 +51,7 @@ class PulsarStreamWriter(
 }
 
 /**
- * A [[DataWriterFactory]] for Pulsar writing. Will be serialized and sent to executors to
+ * A [[PulsarStreamWriterFactory]] for Pulsar writing. Will be serialized and sent to executors to
  * generate the per-task data writers.
  * @param schema The schema of the input data.
  * @param clientConf Parameters for Pulsar client.
@@ -75,7 +75,8 @@ class PulsarStreamWriterFactory(
 }
 
 /**
- * A [[DataWriter]] for Pulsar writing. One data writer will be created in each partition to
+ * A [[PulsarStreamDataWriter]] for Pulsar writing.
+ * One data writer will be created in each partition to
  * process incoming rows.
  *
  * @param topic The topic that this data writer is targeting.

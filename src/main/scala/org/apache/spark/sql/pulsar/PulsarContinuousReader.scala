@@ -31,7 +31,7 @@ import org.apache.spark.sql.pulsar.PulsarSourceUtils.{messageIdRoughEquals, repo
 import org.apache.spark.util.Utils
 
 /**
- * A [[ContinuousReader]] for reading data from Pulsar.
+ * A [[PulsarContinuousReader]] for reading data from Pulsar.
  *
  * @param clientConf
  * @param readerConf

@@ -24,7 +24,7 @@
 
   <groupId>io.streamnative.connectors</groupId>
   <artifactId>pulsar-spark-connector_2.12</artifactId>
-  <version>3.1.1.3</version>
+  <version>3.1.1.10-ds</version>
   <name>StreamNative :: Pulsar Spark Connector</name>
   <url>https://pulsar.apache.org</url>
   <inceptionYear>2019</inceptionYear>
@@ -52,7 +52,8 @@
     </developer>
   </developers>
   <properties>
-    <project.build.outputTimestamp>1</project.build.outputTimestamp>
+    <dataos.releases.repo>https://mymavenrepo.com/repo/1SYCUKwoIEm7SCxJ4is0/</dataos.releases.repo>
+    <project.build.outputTimestamp>1648455450</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.scm.id>snbot-github</project.scm.id>
@@ -64,11 +65,11 @@
 
     <!-- dependencies -->
     <!-- latest version from apache pulsar master -->
-    <pulsar.version>2.4.2</pulsar.version>
-    <scala.version>2.12.10</scala.version>
+    <pulsar.version>2.10.1</pulsar.version>
+    <scala.version>2.12.16</scala.version>
     <scala.binary.version>2.12</scala.binary.version>
     <scalatest.version>3.2.2</scalatest.version>
-    <spark.version>3.1.1</spark.version>
+    <spark.version>3.3.0</spark.version>
     <streamnative-tests.version>2.4.2</streamnative-tests.version>
     <testcontainers.version>1.10.6</testcontainers.version>
     <!-- plugin dependencies -->
@@ -79,8 +80,8 @@
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-source-plugin.version>3.2.0</maven-source-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-    <scala-maven-plugin.version>4.4.1</scala-maven-plugin.version>
-    <scalatest-maven-plugin.version>2.0.2</scalatest-maven-plugin.version>
+    <scala-maven-plugin.version>4.6.3</scala-maven-plugin.version>
+    <scalatest-maven-plugin.version>2.1.0</scalatest-maven-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
   </properties>
 
@@ -131,7 +132,6 @@
       <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.binary.version}</artifactId>
@@ -139,7 +139,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_${scala.binary.version}</artifactId>
@@ -147,7 +146,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-catalyst_${scala.binary.version}</artifactId>
@@ -155,7 +153,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.binary.version}</artifactId>
@@ -163,7 +160,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -178,7 +174,7 @@
             <compilerArg>-Xlint:unchecked</compilerArg>
             <!-- https://issues.apache.org/jira/browse/MCOMPILER-205 -->
             <compilerArg>-Xpkginfo:always</compilerArg>
-	      </compilerArgs>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -187,7 +183,6 @@
         <version>${license-maven-plugin.version}</version>
         <configuration>
           <header>src/resources/license.template</header>
-
           <excludes>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
@@ -236,7 +231,7 @@
           <execution>
             <id>attach-javadocs</id>
             <goals>
-                <goal>doc-jar</goal>
+              <goal>doc-jar</goal>
             </goals>
           </execution>
           <execution>
@@ -266,7 +261,7 @@
             <arg>-deprecation</arg>
             <arg>-feature</arg>
             <arg>-explaintypes</arg>
-            <arg>-Yno-adapted-args</arg>
+            <!--            <arg>-Yno-adapted-args</arg>-->
           </args>
           <jvmArgs>
             <jvmArg>-Xms1024m</jvmArg>
@@ -317,7 +312,6 @@
               <createDependencyReducedPom>true</createDependencyReducedPom>
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <minimizeJar>false</minimizeJar>
-
               <artifactSet>
                 <includes>
                   <include>com.github.luben:*</include>
@@ -380,9 +374,9 @@
         </configuration>
         <executions>
           <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
+<!--            <goals>-->
+<!--              <goal>check</goal>-->
+<!--            </goals>-->
           </execution>
         </executions>
       </plugin>
@@ -399,16 +393,29 @@
       <name>bintray</name>
       <url>https://dl.bintray.com/streamnative/maven</url>
     </repository>
+    <repository>
+      <id>dataos.releases</id>
+      <name>DataOS Releases</name>
+      <url>${dataos.releases.repo}</url>
+    </repository>
+    <repository>
+      <id>sonatype.releases</id>
+      <url>https://oss.sonatype.org/content/repositories/releases/</url>
+    </repository>
   </repositories>
   <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
     <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>dataos.releases</id>
+      <url>${dataos.releases.repo}</url>
     </repository>
+    <!--    <snapshotRepository>-->
+    <!--      <id>ossrh</id>-->
+    <!--      <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--    </snapshotRepository>-->
+    <!--    <repository>-->
+    <!--      <id>ossrh</id>-->
+    <!--      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+    <!--    </repository>-->
   </distributionManagement>
   <profiles>
     <profile>
@@ -433,6 +440,31 @@
                 <arg>loopback</arg>
               </gpgArguments>
             </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>1.7.1</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <filters>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
           <plugin>
             <groupId>org.sonatype.plugins</groupId>

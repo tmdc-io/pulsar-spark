@@ -56,7 +56,7 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
   private val factory = options.buildJsonFactory()
 
   private def makeStructRootConverter(
-      st: StructType): (JsonParser, InternalRow) => InternalRow = {
+                                       st: StructType): (JsonParser, InternalRow) => InternalRow = {
     val fieldConverters = st.map(_.dataType).map(makeConverter).toArray
     (parser: JsonParser, row: InternalRow) =>
       parseJsonToken[InternalRow](parser, st) {
@@ -160,7 +160,7 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
             // This one will lose microseconds parts.
             // See https://issues.apache.org/jira/browse/SPARK-10681.
             Long.box {
-              Try(TimestampFormatter(options.timestampFormat, options.zoneId, true)
+              Try(TimestampFormatter(options.timestampFormatInWrite, options.zoneId, true)
                 .parse(stringValue))
                 .getOrElse {
                   // If it fails to parse, then tries the way used in 2.0 and 1.x for backwards
@@ -182,7 +182,7 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
             // This one will lose microseconds parts.
             // See https://issues.apache.org/jira/browse/SPARK-10681.x
             Long.box {
-              Try(TimestampFormatter(options.timestampFormat,
+              Try(TimestampFormatter(options.timestampFormatInWrite,
                 options.zoneId, true).parse(stringValue))
                 .orElse {
                   // If it fails to parse, then tries the way used in 2.0 and 1.x for backwards
@@ -252,7 +252,7 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
    * token, call `failedConversion` to handle the token.
    */
   private def parseJsonToken[R >: Null](parser: JsonParser, dataType: DataType)(
-      f: PartialFunction[JsonToken, R]): R = {
+    f: PartialFunction[JsonToken, R]): R = {
     parser.getCurrentToken match {
       case FIELD_NAME =>
         // There are useless FIELD_NAMEs between START_OBJECT and END_OBJECT tokens
@@ -270,8 +270,8 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
    * to guard the non string types.
    */
   private def failedConversion[R >: Null](
-      parser: JsonParser,
-      dataType: DataType): PartialFunction[JsonToken, R] = {
+                                           parser: JsonParser,
+                                           dataType: DataType): PartialFunction[JsonToken, R] = {
     case VALUE_STRING if parser.getTextLength < 1 =>
       // If conversion is failed, this produces `null` rather than throwing exception.
       // This will protect the mismatch of types.
@@ -289,10 +289,10 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
    * Fields in the json that are not defined in the requested schema will be dropped.
    */
   private def convertObject(
-      parser: JsonParser,
-      schema: StructType,
-      fieldConverters: Array[ValueConverter],
-      row: InternalRow): InternalRow = {
+                             parser: JsonParser,
+                             schema: StructType,
+                             fieldConverters: Array[ValueConverter],
+                             row: InternalRow): InternalRow = {
     val allFields = 0 until schema.fields.length
     val nullFields = collection.mutable.Set(allFields: _*)
     while (nextUntil(parser, JsonToken.END_OBJECT)) {
@@ -343,10 +343,10 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
    *   the corrupt record text instead of record.toString
    */
   def parse[T](
-      record: T,
-      createParser: (JsonFactory, T) => JsonParser,
-      recordLiteral: T => UTF8String,
-      row: InternalRow): InternalRow = {
+                record: T,
+                createParser: (JsonFactory, T) => JsonParser,
+                recordLiteral: T => UTF8String,
+                row: InternalRow): InternalRow = {
     try {
       Utils.tryWithResource(createParser(factory, record)) { parser =>
         // a null first token is equivalent to testing for input.trim.isEmpty
@@ -378,9 +378,9 @@ class JacksonRecordParser(schema: DataType, val options: JSONOptions) extends Lo
 }
 
 class FailureSafeRecordParser[IN](
-    rawParser: (IN, InternalRow) => InternalRow,
-    mode: ParseMode,
-    schema: StructType) {
+                                   rawParser: (IN, InternalRow) => InternalRow,
+                                   mode: ParseMode,
+                                   schema: StructType) {
 
   def parse(input: IN, row: InternalRow): InternalRow = {
     try {

@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 import org.apache.pulsar.client.admin.{PulsarAdmin, PulsarAdminException}
 import org.apache.pulsar.client.api.{Schema => PSchema}
@@ -36,14 +35,14 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.types.Decimal.minBytesForPrecision
 
 class IncompatibleSchemaException(msg: String, ex: Throwable = null) extends Exception(msg, ex)
-
+//scalastyle:off
 class SchemaInfoSerializable(var si: SchemaInfo) extends Externalizable {
 
   def this() = this(null) // For deserialization only
 
   override def writeExternal(out: ObjectOutput): Unit = {
     val schema = si.getSchema
-    if (schema.length == 0) {
+    if (schema.isEmpty) {
       out.writeInt(0)
     } else {
       out.writeInt(schema.length)
@@ -56,18 +55,17 @@ class SchemaInfoSerializable(var si: SchemaInfo) extends Externalizable {
   }
 
   override def readExternal(in: ObjectInput): Unit = {
-    si = new SchemaInfo()
     val len = in.readInt()
+    var schema = new Array[Byte](0)
     if (len > 0) {
-      val ba = new Array[Byte](len)
-      in.readFully(ba)
-      si.setSchema(ba)
-    } else {
-      si.setSchema(new Array[Byte](0))
+      schema = new Array[Byte](len)
+      in.readFully(schema)
     }
-    si.setName(in.readUTF())
-    si.setProperties(in.readObject().asInstanceOf[java.util.Map[String, String]])
-    si.setType(SchemaType.valueOf(in.readInt()))
+    val schemaName = in.readUTF()
+    val properties = in.readObject().asInstanceOf[java.util.Map[String, String]]
+    val schemaType = SchemaType.valueOf(in.readInt())
+
+    si = new SchemaInfoImpl(schemaName, schema, schemaType, properties)
   }
 }
 
@@ -163,13 +161,13 @@ private[pulsar] object SchemaUtils {
   case class TypeNullable(dataType: DataType, nullable: Boolean)
 
   def pulsarSourceSchema(si: SchemaInfo): StructType = {
-    var mainSchema: ListBuffer[StructField] = ListBuffer.empty
+    var mainSchema: Seq[StructField] = Seq()
     val typeNullable = si2SqlType(si)
     typeNullable.dataType match {
       case st: StructType =>
         mainSchema ++= st.fields
       case t =>
-        mainSchema += StructField("value", t, nullable = typeNullable.nullable)
+        mainSchema :+ StructField("value", t, nullable = typeNullable.nullable)
     }
     mainSchema ++= metaDataFields
     StructType(mainSchema)
@@ -230,14 +228,16 @@ private[pulsar] object SchemaUtils {
       case RECORD =>
         if (existingRecordNames.contains(avroSchema.getFullName)) {
           throw new IncompatibleSchemaException(s"""
-            |Found recursive reference in Avro schema, which can not be processed by Spark:
-            |${avroSchema.toString(true)}
+                                                   |Found recursive reference in Avro schema,
+                                                   | which can not be processed by Spark:
+                                                   |${avroSchema.toString(true)}
           """.stripMargin)
         }
         val newRecordNames = existingRecordNames + avroSchema.getFullName
-        val fields = avroSchema.getFields.asScala.map { f =>
+        val fields : Seq[StructField] = Seq()
+        avroSchema.getFields.asScala.map { f =>
           val typeNullable = avro2SqlType(f.schema(), newRecordNames)
-          StructField(f.name, typeNullable.dataType, typeNullable.nullable)
+          fields :+ StructField(f.name, typeNullable.dataType, typeNullable.nullable)
         }
 
         TypeNullable(StructType(fields), nullable = false)
@@ -276,11 +276,12 @@ private[pulsar] object SchemaUtils {
             case _ =>
               // Convert complex unions to struct types where field names are member0, member1, etc.
               // This is consistent with the behavior when converting between Avro and Parquet.
-              val fields = avroSchema.getTypes.asScala.zipWithIndex.map {
+              val fields : Seq[StructField] = Seq()
+              avroSchema.getTypes.asScala.zipWithIndex.map {
                 case (s, i) =>
                   val TypeNullable = avro2SqlType(s, existingRecordNames)
                   // All fields are nullable because only one of them is set at a time
-                  StructField(s"member$i", TypeNullable.dataType, nullable = true)
+                  fields :+ StructField(s"member$i", TypeNullable.dataType, nullable = true)
               }
 
               TypeNullable(StructType(fields), nullable = false)
@@ -292,10 +293,10 @@ private[pulsar] object SchemaUtils {
 
   def ASchema2PSchema(aschema: ASchema): GenericSchema[GenericRecord] = {
     val schema = aschema.toString.getBytes(StandardCharsets.UTF_8)
-    val si = new SchemaInfo()
-    si.setName("Avro")
-    si.setSchema(schema)
-    si.setType(SchemaType.AVRO)
+    val si = new SchemaInfoImpl("Avro",
+      schema,
+      SchemaType.AVRO,
+      new java.util.HashMap[String, String]())
     PSchema.generic(si)
   }
 
@@ -320,10 +321,10 @@ private[pulsar] object SchemaUtils {
 
   // adapted from org.apache.spark.sql.avro.SchemaConverters#toAvroType
   def sqlType2ASchema(
-      catalystType: DataType,
-      nullable: Boolean = false,
-      recordName: String = "topLevelRecord",
-      nameSpace: String = ""): ASchema = {
+                       catalystType: DataType,
+                       nullable: Boolean = false,
+                       recordName: String = "topLevelRecord",
+                       nameSpace: String = ""): ASchema = {
     val builder = SchemaBuilder.builder()
 
     val schema = catalystType match {

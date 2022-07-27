@@ -60,7 +60,7 @@ private[pulsar] class PulsarSource(
 
   lazy val pulsarSchema: SchemaInfo = metadataReader.getPulsarSchema()
 
-  override def schema(): StructType = SchemaUtils.pulsarSourceSchema(pulsarSchema)
+  override def schema: StructType = SchemaUtils.pulsarSourceSchema(pulsarSchema)
 
   override def getOffset: Option[Offset] = {
     // Make sure initialTopicOffsets is initialized
