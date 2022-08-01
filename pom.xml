@@ -68,7 +68,7 @@
     <pulsar.version>2.10.1</pulsar.version>
     <scala.version>2.12.16</scala.version>
     <scala.binary.version>2.12</scala.binary.version>
-    <scalatest.version>3.2.2</scalatest.version>
+    <scalatest.version>3.2.12</scalatest.version>
     <spark.version>3.3.0</spark.version>
     <streamnative-tests.version>2.4.2</streamnative-tests.version>
     <testcontainers.version>1.10.6</testcontainers.version>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.4</version>
+      <version>2.11.0</version>
     </dependency>
 
     <!-- spark dependency -->
@@ -309,7 +309,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <minimizeJar>false</minimizeJar>
               <artifactSet>

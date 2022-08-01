@@ -42,7 +42,6 @@ object PulsarConfigurationUtils {
   val clientConfKeys: Map[String, String] = Map(
     "serviceUrl".toLowerCase -> "serviceUrl",
     "serviceUrlProvider".toLowerCase -> "serviceUrlProvider",
-    "authentication".toLowerCase -> "authentication",
     "authPluginClassName".toLowerCase -> "authPluginClassName",
     "authParams".toLowerCase -> "authParams",
     "authParamMap".toLowerCase -> "authParamMap",
@@ -78,10 +77,7 @@ object PulsarConfigurationUtils {
     "memoryLimitBytes".toLowerCase -> "memoryLimitBytes",
     "proxyServiceUrl".toLowerCase -> "proxyServiceUrl",
     "proxyProtocol".toLowerCase -> "proxyProtocol",
-    "enableTransaction".toLowerCase -> "enableTransaction",
-    "socks5ProxyAddress".toLowerCase -> "socks5ProxyAddress",
-    "socks5ProxyUsername".toLowerCase -> "socks5ProxyUsername",
-    "socks5ProxyUsername".toLowerCase -> "socks5ProxyUsername")
+    "enableTransaction".toLowerCase -> "enableTransaction")
 
   val producerConfKeys: Map[String, String] = Map(
     "topicName".toLowerCase -> "topicName",
@@ -92,8 +88,6 @@ object PulsarConfigurationUtils {
     "maxPendingMessagesAcrossPartitions".toLowerCase -> "maxPendingMessagesAcrossPartitions",
     "messageRoutingMode".toLowerCase -> "messageRoutingMode",
     "hashingScheme".toLowerCase -> "hashingScheme",
-    "cryptoFailureAction".toLowerCase -> "cryptoFailureAction",
-    "customMessageRouter".toLowerCase -> "customMessageRouter",
     "batchingMaxPublishDelayMicros".toLowerCase -> "batchingMaxPublishDelayMicros",
     "batchingPartitionSwitchFrequencyByPublishDelay".toLowerCase -> "batchingPartitionSwitchFrequencyByPublishDelay",
     "batchingMaxMessages".toLowerCase -> "batchingMaxMessages",
@@ -127,7 +121,7 @@ object PulsarConfigurationUtils {
     "keyHashRanges".toLowerCase -> "keyHashRanges",
     "poolMessages".toLowerCase -> "poolMessages"
   )
-  val consumerConfKeys = Map(
+  val consumerConfKeys: Map[String, String] = Map(
     "topicsPattern".toLowerCase -> "topicsPattern",
     "subscriptionName".toLowerCase -> "subscriptionName",
     "subscriptionType".toLowerCase -> "subscriptionType",
@@ -143,13 +137,11 @@ object PulsarConfigurationUtils {
     "maxPendingChunkedMessage".toLowerCase -> "maxPendingChunkedMessage",
     "autoAckOldestChunkedMessageOnQueueFull".toLowerCase -> "autoAckOldestChunkedMessageOnQueueFull",
     "expireTimeOfIncompleteChunkedMessageMillis".toLowerCase -> "expireTimeOfIncompleteChunkedMessageMillis",
-    "cryptoFailureAction".toLowerCase -> "cryptoFailureAction",
     "properties".toLowerCase -> "properties",
     "readCompacted".toLowerCase -> "readCompacted",
     "subscriptionInitialPosition".toLowerCase -> "subscriptionInitialPosition",
     "patternAutoDiscoveryPeriod".toLowerCase -> "patternAutoDiscoveryPeriod",
     "regexSubscriptionMode".toLowerCase -> "regexSubscriptionMode",
-    "deadLetterPolicy".toLowerCase -> "deadLetterPolicy",
     "retryEnable".toLowerCase -> "retryEnable",
     "autoUpdatePartitions".toLowerCase -> "autoUpdatePartitions",
     "autoUpdatePartitionsIntervalSeconds".toLowerCase -> "autoUpdatePartitionsIntervalSeconds",

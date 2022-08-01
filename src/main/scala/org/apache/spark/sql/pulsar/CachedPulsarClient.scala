@@ -75,7 +75,7 @@ private[pulsar] object CachedPulsarClient extends Logging {
       pulsarConf.asScala.toMap,
       PulsarOptions.FilteredKeys
     ).rebuild()
-    logInfo(s"Client Conf = ${clientConf}")
+    logDebug(s"Client Conf = ${clientConf}")
     try {
       pulsarClientBuilder
         .serviceUrl(pulsarServiceUrl)

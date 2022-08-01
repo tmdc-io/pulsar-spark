@@ -14,10 +14,9 @@
 package org.apache.spark.sql.pulsar
 
 import java.{util => ju}
-
 import scala.collection.JavaConverters._
-
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.pulsar.CachedPulsarClient.logDebug
 
 /**
  * Class to conveniently update pulsar config params, while logging the changes.
@@ -40,7 +39,7 @@ private[pulsar] case class PulsarConfigUpdater(
       logInfo(s"$module: Skip '$key'")
     } else {
       map.put(key, value)
-      logInfo(s"$module: Set '$key' to " +
+      logDebug(s"$module: Set '$key' to " +
         s"'${printConfigValue(key, Option(value))}'," +
         s" earlier value: '${printConfigValue(key, pulsarParams.get(key))}'")
     }
@@ -53,7 +52,7 @@ private[pulsar] case class PulsarConfigUpdater(
 
   def setIfUnset(key: String, value: Object, map: ju.Map[String, Object]): this.type = {
     if (blacklistedKeys.contains(key)) {
-      logInfo(s"$module: Skip '$key'")
+      logDebug(s"$module: Skip '$key'")
     } else {
       if (!map.containsKey(key)) {
         map.put(key, value)

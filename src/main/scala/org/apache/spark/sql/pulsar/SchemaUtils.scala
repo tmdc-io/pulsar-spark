@@ -234,10 +234,10 @@ private[pulsar] object SchemaUtils {
           """.stripMargin)
         }
         val newRecordNames = existingRecordNames + avroSchema.getFullName
-        val fields : Seq[StructField] = Seq()
-        avroSchema.getFields.asScala.map { f =>
+//        val fields : Seq[StructField] = Seq()
+        val fields = avroSchema.getFields.asScala.map { f =>
           val typeNullable = avro2SqlType(f.schema(), newRecordNames)
-          fields :+ StructField(f.name, typeNullable.dataType, typeNullable.nullable)
+          StructField(f.name, typeNullable.dataType, typeNullable.nullable)
         }
 
         TypeNullable(StructType(fields), nullable = false)
@@ -276,12 +276,12 @@ private[pulsar] object SchemaUtils {
             case _ =>
               // Convert complex unions to struct types where field names are member0, member1, etc.
               // This is consistent with the behavior when converting between Avro and Parquet.
-              val fields : Seq[StructField] = Seq()
-              avroSchema.getTypes.asScala.zipWithIndex.map {
+//              val fields : Seq[StructField] = Seq()
+              val fields = avroSchema.getTypes.asScala.zipWithIndex.map {
                 case (s, i) =>
                   val TypeNullable = avro2SqlType(s, existingRecordNames)
                   // All fields are nullable because only one of them is set at a time
-                  fields :+ StructField(s"member$i", TypeNullable.dataType, nullable = true)
+                  StructField(s"member$i", TypeNullable.dataType, nullable = true)
               }
 
               TypeNullable(StructType(fields), nullable = false)
